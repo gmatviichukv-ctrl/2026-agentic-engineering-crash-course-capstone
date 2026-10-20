@@ -1,0 +1,29 @@
+{
+  "places": [
+    {
+      "id": "far-shop",
+      "displayName": { "text": "Велопрокат Оболонь", "languageCode": "uk" },
+      "formattedAddress": "Оболонська набережна, 1, Київ",
+      "location": { "latitude": 50.5100, "longitude": 30.5100 },
+      "googleMapsUri": "https://maps.google.com/?cid=111"
+    },
+    {
+      "id": "near-shop",
+      "displayName": { "text": "BikeRent Хрещатик", "languageCode": "uk" },
+      "formattedAddress": "вул. Хрещатик, 22, Київ",
+      "location": { "latitude": 50.4475, "longitude": 30.5225 },
+      "googleMapsUri": "https://maps.google.com/?cid=222"
+    },
+    {
+      "id": "no-location",
+      "displayName": { "text": "Без координат" },
+      "formattedAddress": "десь у Києві",
+      "googleMapsUri": "https://maps.google.com/?cid=333"
+    },
+    {
+      "id": "no-name",
+      "formattedAddress": "Поділ, Київ",
+      "location": { "latitude": 50.4650, "longitude": 30.5150 }
+    }
+  ]
+}
