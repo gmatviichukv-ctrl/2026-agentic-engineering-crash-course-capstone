@@ -28,7 +28,26 @@ describe("F5: POST /api/bookings", () => {
     expect((await post(valid)).status).toBe(201);
     const res = await post({ ...valid, equipmentIds: [], from: day(5), to: day(6) });
     expect(res.status).toBe(409);
-    expect((await res.json()).errors[0]).toMatch(/[а-яіїє]/i);
+    expect((await res.json()).errors).toEqual(["Велосипед уже заброньовано на ці дати"]);
+  });
+
+  test("F5: last trailer taken → 409 for a different bike on the same days", async () => {
+    // e-trailer has quantity 2 in data/rentals.json
+    expect((await post({ ...valid, bikeId: "r-trek" })).status).toBe(201);
+    expect((await post({ ...valid, bikeId: "r-ebike" })).status).toBe(201);
+    // Only 2 hitch bikes exist, so the bike is busy too — assert BOTH reasons, otherwise the 409
+    // could come from the bike alone and the trailer rule would be untested (caught in self-review).
+    const third = await post({ bikeId: "r-ebike", equipmentIds: ["e-trailer"], from: day(4), to: day(4) });
+    expect(third.status).toBe(409);
+    expect((await third.json()).errors).toEqual([
+      "Велосипед уже заброньовано на ці дати",
+      "«Причіп для собаки (до 30 кг)» недоступне на ці дати",
+    ]);
+  });
+
+  test("F4/F5: two simultaneous requests for the same bike → exactly one wins", async () => {
+    const statuses = (await Promise.all([post(valid), post(valid)])).map((r) => r.status).sort();
+    expect(statuses).toEqual([201, 409]);
   });
 
   test("F5: trailer on a bike without a hitch → 400", async () => {
