@@ -1,4 +1,6 @@
 // File-backed booking store for local use (spec: `.data/bookings.json`, not in git).
+// The store path is a runtime value (BOOKINGS_FILE), so fs calls carry turbopackIgnore — otherwise
+// `next build` traces the whole project into the server output (found in v2 build log).
 // Not a database: fine for a single local server process, not for serverless or multi-instance deploys.
 import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
@@ -8,7 +10,7 @@ const file = () => process.env.BOOKINGS_FILE ?? join(process.cwd(), ".data", "bo
 
 async function readBookings(): Promise<Booking[]> {
   try {
-    return JSON.parse(await readFile(file(), "utf8")) as Booking[];
+    return JSON.parse(await readFile(/*turbopackIgnore: true*/ file(), "utf8")) as Booking[];
   } catch (e) {
     if ((e as NodeJS.ErrnoException).code === "ENOENT") return [];
     throw e;
@@ -18,10 +20,10 @@ async function readBookings(): Promise<Booking[]> {
 /** Atomic write: a crash mid-write leaves the old file intact (review finding #1). */
 async function writeBookings(bookings: Booking[]): Promise<void> {
   const target = file();
-  await mkdir(dirname(target), { recursive: true });
+  await mkdir(/*turbopackIgnore: true*/ dirname(target), { recursive: true });
   const tmp = `${target}.${process.pid}.${Date.now()}.tmp`;
-  await writeFile(tmp, JSON.stringify(bookings, null, 2));
-  await rename(tmp, target);
+  await writeFile(/*turbopackIgnore: true*/ tmp, JSON.stringify(bookings, null, 2));
+  await rename(/*turbopackIgnore: true*/ tmp, target);
 }
 
 let queue: Promise<unknown> = Promise.resolve();

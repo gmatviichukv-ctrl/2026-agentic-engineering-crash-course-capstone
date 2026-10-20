@@ -1,5 +1,6 @@
 import rentals from "@/data/rentals.json";
 import type { Equipment, RentalBike } from "@/lib/types";
+import { NearbyShops } from "./NearbyShops";
 import { RentForm } from "./RentForm";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
         Оберіть велосипед, дати та екіпірування для собаки. Від 7 днів — знижка 10 %.
       </p>
       <RentForm bikes={rentals.bikes as RentalBike[]} equipment={rentals.equipment as Equipment[]} />
+      <NearbyShops />
     </main>
   );
 }
