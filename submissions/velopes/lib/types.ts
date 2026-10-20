@@ -1,29 +1,4 @@
-// Contract types from docs/spec.md. Implementations live in search.ts / rental.ts.
-
-export type ListingKind = "bike" | "part";
-export type FrameSize = "S" | "M" | "L" | "XL";
-
-export interface Listing {
-  id: string;
-  kind: ListingKind;
-  title: string;
-  description: string;
-  priceEur: number;
-  city: string;
-  condition: "як новий" | "добрий" | "задовільний";
-  frameSize?: FrameSize;
-  postedAt: string; // YYYY-MM-DD
-}
-
-export interface SearchQuery {
-  text?: string;
-  kind?: ListingKind;
-  city?: string;
-  frameSize?: FrameSize;
-  minPrice?: number;
-  maxPrice?: number;
-  sort?: "newest" | "price-asc" | "price-desc";
-}
+// Contract types from docs/spec.md. Implementations live in rental.ts and places.ts.
 
 export interface RentalBike {
   id: string;
@@ -60,7 +35,18 @@ export interface Quote {
   totalCents: number;
 }
 
-/** Thrown for invalid input (e.g. minPrice > maxPrice). Message is Ukrainian UI copy. */
+/** A real bike-rental shop near the user, from Google Places (spec F6). */
+export interface Shop {
+  id: string;
+  name: string;
+  address: string;
+  lat: number;
+  lng: number;
+  mapsUrl: string;
+  distanceKm: number;
+}
+
+/** Thrown for invalid input. Message is Ukrainian UI copy. */
 export class ValidationError extends Error {
   constructor(message: string) {
     super(message);
