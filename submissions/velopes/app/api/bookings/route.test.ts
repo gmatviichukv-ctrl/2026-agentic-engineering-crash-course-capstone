@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { beforeEach, describe, expect, test } from "vitest";
@@ -48,6 +48,8 @@ describe("F5: POST /api/bookings", () => {
   test("F4/F5: two simultaneous requests for the same bike → exactly one wins", async () => {
     const statuses = (await Promise.all([post(valid), post(valid)])).map((r) => r.status).sort();
     expect(statuses).toEqual([201, 409]);
+    const stored = JSON.parse(readFileSync(process.env.BOOKINGS_FILE!, "utf8"));
+    expect(stored).toHaveLength(1); // re-review #3: prove only one booking was persisted
   });
 
   test("F5: trailer on a bike without a hitch → 400", async () => {
