@@ -1,6 +1,6 @@
 # Project rules — ВелоПес (fwdays capstone)
 
-Б/у велосипеди й запчастини + оренда велосипеда з екіпіруванням для собаки. Що будуємо — `docs/spec.md`.
+Оренда велосипеда з екіпіруванням для собаки + прокати поруч через Google Places. Що будуємо — `docs/spec.md`.
 Специфікація — джерело правди: якщо код і spec розходяться, зупинись і скажи, не «підганяй» тест.
 
 ## Commands (pnpm only — never npm or yarn)
@@ -12,7 +12,7 @@
 
 ## Definition of done
 
-- `pnpm check` is green; every requirement F1–F4 from `docs/spec.md` has a test that names it (`F2: …`).
+- `pnpm check` is green; every requirement F2–F6 from `docs/spec.md` has a test that names it (`F6: …`).
 - Evidence, not claims: report the command you ran and the test count.
 
 ## Conventions

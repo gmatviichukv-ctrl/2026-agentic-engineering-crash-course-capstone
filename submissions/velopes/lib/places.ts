@@ -21,7 +21,7 @@ export function buildPlacesRequest({ lat, lng, radiusM = DEFAULT_RADIUS_M }: Lat
     locationBias: {
       circle: {
         center: { latitude: lat, longitude: lng },
-        radius: Math.min(MAX_RADIUS_M, Math.max(MIN_RADIUS_M, radiusM)),
+        radius: Number.isFinite(radiusM) ? Math.min(MAX_RADIUS_M, Math.max(MIN_RADIUS_M, radiusM)) : DEFAULT_RADIUS_M,
       },
     },
   };

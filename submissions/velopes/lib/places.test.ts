@@ -17,6 +17,7 @@ describe("F6: buildPlacesRequest", () => {
   test("F6: radius is clamped to 100–50000 m", () => {
     expect(buildPlacesRequest({ ...maidan, radiusM: 10 }).locationBias.circle.radius).toBe(100);
     expect(buildPlacesRequest({ ...maidan, radiusM: 999_999 }).locationBias.circle.radius).toBe(50000);
+    expect(buildPlacesRequest({ ...maidan, radiusM: Number.NaN }).locationBias.circle.radius).toBe(5000);
   });
 
   test("F6: field mask asks only for the cheap fields we show — no rating", () => {
@@ -57,8 +58,9 @@ describe("F6: parsePlaces", () => {
 describe("F6: distanceKm and validateCoords", () => {
   test("F6: haversine distance rounded to 0.1 km", () => {
     expect(distanceKm(maidan, maidan)).toBe(0);
-    // Kyiv (Maidan) → Lviv (Rynok Square) ≈ 469 km
-    expect(distanceKm(maidan, { lat: 49.8419, lng: 24.0315 })).toBeCloseTo(469, -1);
+    // 1° of latitude on a 6371 km sphere = 111.19 km → rounded 111.2 (pins radius, radians and rounding)
+    expect(distanceKm({ lat: 0, lng: 0 }, { lat: 1, lng: 0 })).toBe(111.2);
+    expect(distanceKm(maidan, { lat: 49.8419, lng: 24.0315 })).toBeCloseTo(469, -1); // Kyiv → Lviv sanity check
   });
 
   test("F6: coordinates must be numbers within range", () => {

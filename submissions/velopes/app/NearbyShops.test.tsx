@@ -1,8 +1,11 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { NearbyShops } from "./NearbyShops";
 
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
 
 test("F6: choosing a city lists shops with a Google Maps link", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ shops: [
@@ -17,6 +20,15 @@ test("F6: choosing a city lists shops with a Google Maps link", async () => {
 test("F6: shows the server's Ukrainian message when the key is missing", async () => {
   vi.stubGlobal("fetch", vi.fn(async () => Response.json({ errors: ["Пошук прокатів вимкнено: не задано ключ Google"] }, { status: 503 })));
   render(<NearbyShops />);
-  fireEvent.change(screen.getAllByLabelText("Місто").at(-1)!, { target: { value: "Львів" } });
+  fireEvent.change(screen.getByLabelText("Місто"), { target: { value: "Львів" } });
   expect(await screen.findByText(/не задано ключ Google/)).toBeDefined();
+});
+
+test("F6: geolocation denied → asks to pick a city instead", async () => {
+  vi.stubGlobal("navigator", { geolocation: { getCurrentPosition: (_ok: unknown, err: () => void) => err() } });
+  vi.stubGlobal("fetch", vi.fn());
+  render(<NearbyShops />);
+  fireEvent.click(screen.getByRole("button", { name: /Моя геолокація/ }));
+  expect(await screen.findByText(/Немає доступу до геолокації/)).toBeDefined();
+  expect(fetch).not.toHaveBeenCalled();
 });
