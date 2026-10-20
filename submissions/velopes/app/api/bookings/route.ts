@@ -1,7 +1,7 @@
 import rentals from "@/data/rentals.json";
 import { checkAvailability, validateBooking } from "@/lib/rental";
 import type { Booking, BookingRequest, Equipment, RentalBike } from "@/lib/types";
-import { readBookings, writeBookings } from "@/server/bookings-store";
+import { withBookings } from "@/server/bookings-store";
 
 const bikes = rentals.bikes as RentalBike[];
 const equipment = rentals.equipment as Equipment[];
@@ -23,11 +23,14 @@ export async function POST(request: Request) {
   const invalid = validateBooking(req, { bikes, equipment, today });
   if (invalid.length) return Response.json({ errors: invalid }, { status: 400 });
 
-  const existing = await readBookings();
-  const busy = checkAvailability(req, { equipment, bookings: existing });
-  if (busy.length) return Response.json({ errors: busy }, { status: 409 });
+  type Outcome = { busy: string[] } | { booking: Booking };
+  const outcome = await withBookings<Outcome>((existing) => {
+    const busy = checkAvailability(req, { equipment, bookings: existing });
+    if (busy.length) return { next: null, result: { busy } };
+    const booking: Booking = { ...req, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+    return { next: [...existing, booking], result: { booking } };
+  });
 
-  const booking: Booking = { ...req, id: crypto.randomUUID(), createdAt: new Date().toISOString() };
-  await writeBookings([...existing, booking]);
-  return Response.json({ booking }, { status: 201 });
+  if ("busy" in outcome) return Response.json({ errors: outcome.busy }, { status: 409 });
+  return Response.json({ booking: outcome.booking }, { status: 201 });
 }
