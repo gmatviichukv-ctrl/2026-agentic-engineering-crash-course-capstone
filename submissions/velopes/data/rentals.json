@@ -1,0 +1,13 @@
+{
+  "bikes": [
+    { "id": "r-city", "title": "Міський велосипед Electra", "city": "Київ", "pricePerDayEur": 12, "trailerHitch": false },
+    { "id": "r-trek", "title": "Trek Verve з фаркопом", "city": "Київ", "pricePerDayEur": 18.5, "trailerHitch": true },
+    { "id": "r-ebike", "title": "Електровелосипед Riese & Müller з фаркопом", "city": "Львів", "pricePerDayEur": 35, "trailerHitch": true }
+  ],
+  "equipment": [
+    { "id": "e-trailer", "title": "Причіп для собаки (до 30 кг)", "pricePerDayEur": 8, "quantity": 2, "requiresHitch": true },
+    { "id": "e-basket", "title": "Передній кошик для малої собаки", "pricePerDayEur": 3.3, "quantity": 3, "requiresHitch": false },
+    { "id": "e-leash", "title": "Кріплення для повідця Springer", "pricePerDayEur": 2, "quantity": 5, "requiresHitch": false },
+    { "id": "e-vest", "title": "Світловідбивний жилет для собаки", "pricePerDayEur": 1, "quantity": 10, "requiresHitch": false }
+  ]
+}
