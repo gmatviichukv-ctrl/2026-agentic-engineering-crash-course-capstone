@@ -10,6 +10,7 @@ const field = "rounded-lg border border-neutral-300 bg-transparent px-3 py-2 tex
 type Status = { kind: "idle" } | { kind: "sending" } | { kind: "ok"; id: string } | { kind: "error"; errors: string[] };
 
 export function RentForm({ bikes, equipment }: { bikes: RentalBike[]; equipment: Equipment[] }) {
+  // "today" is UTC on both client and API (spec F3) — so they always agree on the boundary.
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const [bikeId, setBikeId] = useState(bikes[0]?.id ?? "");
   const [from, setFrom] = useState(today);
@@ -33,9 +34,13 @@ export function RentForm({ bikes, equipment }: { bikes: RentalBike[]; equipment:
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setStatus({ kind: "sending" });
-    const res = await fetch("/api/bookings", { method: "POST", body: JSON.stringify(req) });
-    const body = await res.json();
-    setStatus(res.ok ? { kind: "ok", id: body.booking.id } : { kind: "error", errors: body.errors });
+    try {
+      const res = await fetch("/api/bookings", { method: "POST", body: JSON.stringify(req) });
+      const body = await res.json();
+      setStatus(res.ok ? { kind: "ok", id: body.booking.id } : { kind: "error", errors: body.errors });
+    } catch {
+      setStatus({ kind: "error", errors: ["Сервер не відповів. Спробуйте ще раз за хвилину."] });
+    }
   }
 
   return (

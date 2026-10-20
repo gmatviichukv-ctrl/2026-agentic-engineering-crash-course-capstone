@@ -46,6 +46,16 @@ describe("F2: price", () => {
     const seven = quotePrice({ bike: city, equipment: [leash], from: "2026-11-10", to: "2026-11-16" });
     expect(seven).toEqual({ days: 7, subtotalCents: 9800, discountCents: 980, totalCents: 8820 });
   });
+
+  test("F2: discount is rounded to whole cents first, total = subtotal − discount", () => {
+    const odd: RentalBike = { ...city, pricePerDayEur: 4.65 }; // 4.65 × 7 = 32.55 → 10 % = 3.255
+    expect(quotePrice({ bike: odd, equipment: [], from: "2026-11-10", to: "2026-11-16" })).toEqual({
+      days: 7,
+      subtotalCents: 3255,
+      discountCents: 326, // half-cent rounds up in the customer's favour
+      totalCents: 2929,
+    });
+  });
 });
 
 describe("F3: validation", () => {
@@ -57,16 +67,16 @@ describe("F3: validation", () => {
 
   test("F3: today is allowed, yesterday is not", () => {
     expect(validateBooking({ ...ok, from: "2026-11-01" }, ctx)).toEqual([]);
-    expect(validateBooking({ ...ok, from: "2026-10-31" }, ctx)).not.toEqual([]);
+    expect(validateBooking({ ...ok, from: "2026-10-31" }, ctx)).toEqual(["Дата початку не може бути в минулому"]);
   });
 
   test("F3: end before start is rejected", () => {
-    expect(validateBooking({ ...ok, from: "2026-11-05", to: "2026-11-04" }, ctx)).not.toEqual([]);
+    expect(validateBooking({ ...ok, from: "2026-11-05", to: "2026-11-04" }, ctx)).toEqual(["Дата завершення не може бути раніше дати початку"]);
   });
 
   test("F3: 30 days is the maximum", () => {
     expect(validateBooking({ ...ok, from: "2026-11-02", to: "2026-12-01" }, ctx)).toEqual([]);
-    expect(validateBooking({ ...ok, from: "2026-11-02", to: "2026-12-02" }, ctx)).not.toEqual([]);
+    expect(validateBooking({ ...ok, from: "2026-11-02", to: "2026-12-02" }, ctx)).toEqual(["Максимальний термін оренди — 30 днів"]);
   });
 
   test("F3: trailer only on a bike with a hitch", () => {
@@ -76,14 +86,14 @@ describe("F3: validation", () => {
   });
 
   test("F3: unknown bike or equipment and duplicates are rejected", () => {
-    expect(validateBooking({ ...ok, bikeId: "nope" }, ctx)).not.toEqual([]);
-    expect(validateBooking({ ...ok, equipmentIds: ["nope"] }, ctx)).not.toEqual([]);
-    expect(validateBooking({ ...ok, equipmentIds: ["leash", "leash"] }, ctx)).not.toEqual([]);
+    expect(validateBooking({ ...ok, bikeId: "nope" }, ctx)).toEqual(["Велосипед не знайдено"]);
+    expect(validateBooking({ ...ok, equipmentIds: ["nope"] }, ctx)).toEqual(["Екіпірування «nope» не знайдено"]);
+    expect(validateBooking({ ...ok, equipmentIds: ["leash", "leash"] }, ctx)).toEqual(["Одне й те саме екіпірування не можна додати двічі"]);
   });
 
   test("F3: malformed dates are rejected, not crashing", () => {
-    expect(validateBooking({ ...ok, from: "завтра" }, ctx)).not.toEqual([]);
-    expect(validateBooking({ ...ok, to: "2026-02-30" }, ctx)).not.toEqual([]);
+    expect(validateBooking({ ...ok, from: "завтра" }, ctx)).toEqual(["Невірний формат дати, очікується РРРР-ММ-ДД"]);
+    expect(validateBooking({ ...ok, to: "2026-02-30" }, ctx)).toEqual(["Невірний формат дати, очікується РРРР-ММ-ДД"]);
   });
 });
 
@@ -97,7 +107,7 @@ describe("F4: availability", () => {
 
   test("F4: a bike booked on overlapping days is unavailable", () => {
     const bookings = [b({ id: "1" })];
-    expect(checkAvailability({ bikeId: "trek", equipmentIds: [], from: "2026-11-12", to: "2026-11-13" }, { equipment: ctx.equipment, bookings })).not.toEqual([]);
+    expect(checkAvailability({ bikeId: "trek", equipmentIds: [], from: "2026-11-12", to: "2026-11-13" }, { equipment: ctx.equipment, bookings })).toEqual(["Велосипед уже заброньовано на ці дати"]);
     expect(checkAvailability({ bikeId: "trek", equipmentIds: [], from: "2026-11-13", to: "2026-11-13" }, { equipment: ctx.equipment, bookings })).toEqual([]);
     expect(checkAvailability({ bikeId: "city", equipmentIds: [], from: "2026-11-10", to: "2026-11-10" }, { equipment: ctx.equipment, bookings })).toEqual([]);
   });
@@ -107,6 +117,6 @@ describe("F4: availability", () => {
     const two = [...one, b({ id: "2", bikeId: "x", equipmentIds: ["basket"] })];
     const req = { bikeId: "trek", equipmentIds: ["basket"], from: "2026-11-11", to: "2026-11-11" };
     expect(checkAvailability(req, { equipment: ctx.equipment, bookings: one })).toEqual([]);
-    expect(checkAvailability(req, { equipment: ctx.equipment, bookings: two })).not.toEqual([]);
+    expect(checkAvailability(req, { equipment: ctx.equipment, bookings: two })).toEqual(["«Кошик для собаки» недоступне на ці дати"]);
   });
 });
